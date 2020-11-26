@@ -23,20 +23,30 @@ class MainWindow(QMainWindow):
         self.ui.actionAbout_QT.triggered.connect(self.about_qt)
 
         # Threading test
-        self.custom_thread = CustomThread()
-        self.custom_thread.start()
+        ##self.custom_thread = CustomThread()
+        ##self.custom_thread.start()
+        self.cmd_thread = SystemCommandThread(command=None)
 
 
 
     def closeEvent(self, event):
-        self.custom_thread.stop()
+        ##self.cmd_thread.stop()
+        ##self.custom_thread.stop()
         #app.quit()
         #event.accept()
+        print(self.cmd_thread.isRunning())
+        self.cmd_thread.stop()
+        pass
 
 
     def open_drive(self):
         if self.platform == "Windows":
-            ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door open", None, 0, None)
+            #self.cmd_thread = SystemCommandThread()
+            self.cmd_thread.stop()
+            self.cmd_thread = SystemCommandThread(command='ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door open", None, 0, None)')
+            self.cmd_thread.start()
+            #self.cmd_thread.start()
+            #ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door open", None, 0, None)
 
         elif self.platform == "Linux":
             os.system("eject cdrom")
@@ -57,7 +67,10 @@ class MainWindow(QMainWindow):
 
     def close_drive(self):
         if self.platform == "Windows":
-            ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door closed", None, 0, None)
+            self.cmd_thread.stop()
+            self.cmd_thread = SystemCommandThread(command='ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door closed", None, 0, None)')
+            self.cmd_thread.start()
+            #ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door closed", None, 0, None)
 
         elif self.platform == "Linux":
             os.system("eject -t cdrom")
@@ -81,11 +94,21 @@ class MainWindow(QMainWindow):
 
 
 
-class CustomThread(QThread):
+class SystemCommandThread(QThread):
+    def __init__(self, command):
+        super().__init__()
+        self.command = command
+
+
     def run(self):
         while not self.isInterruptionRequested():
             print("Thread is Running")
-            time.sleep(1)
+            exec(self.command)
+            #ctypes.windll.WINMM.mciSendStringW(u"set cdaudio door open", None, 0, None)
+            print("before break")
+            #self.exit()
+            break
+            #time.sleep(1)
 
     def stop(self):
         print("Thread Stopped")
