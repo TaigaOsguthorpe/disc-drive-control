@@ -1,10 +1,14 @@
 from PySide2.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PySide2.QtCore import QFile
+from PySide2.QtCore import QThread
 #from gui.no_skin import Ui_MainWindow
 from gui.skined import Ui_MainWindow
 import ctypes
 import platform
 import os
+# THREADING TEST
+import time
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -18,6 +22,16 @@ class MainWindow(QMainWindow):
 
         self.ui.actionAbout_QT.triggered.connect(self.about_qt)
 
+        # Threading test
+        self.custom_thread = CustomThread()
+        self.custom_thread.start()
+
+
+
+    def closeEvent(self, event):
+        self.custom_thread.stop()
+        #app.quit()
+        #event.accept()
 
 
     def open_drive(self):
@@ -65,6 +79,18 @@ class MainWindow(QMainWindow):
     def about_qt(self):
         QMessageBox.aboutQt(self)
 
+
+
+class CustomThread(QThread):
+    def run(self):
+        while not self.isInterruptionRequested():
+            print("Thread is Running")
+            time.sleep(1)
+
+    def stop(self):
+        print("Thread Stopped")
+        self.requestInterruption()
+        self.wait()
 
 
 
